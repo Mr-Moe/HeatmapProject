@@ -4,15 +4,17 @@ $username = "root";
 $password = "";
 $dbname = "practice";
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-} 
 
-$sql = "SELECT drone, count FROM HinckleyDrones";
-$result = $conn->query($sql);
+$conn = dbConnect($servername, $username, $password, $dbname);
+
+if($_POST['action'] == 'getAverage') {
+
+    echo returnAverage($totalCount, $noValuesArray);
+    closeDBConnection($conn);
+    die;
+}
+
+$result = getDroneData($conn);
 
 if ($result->num_rows > 0) {
     // output data of each row
@@ -27,15 +29,32 @@ if ($result->num_rows > 0) {
 $totalCount = array_sum($count);
 $noValuesArray = count($count);
 
-if($_POST['action'] == 'getAverage') {
-    echo returnAverage();
-    die;
+closeDBConnection($conn);
+
+
+function dbConnect($host, $user, $pass, $dbName) {
+    // Create connection
+    $conn = new mysqli($host, $user, $pass, $dbName);
+    // Check connection
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+    return $conn;
 }
 
-function returnAverage() {
+function getDroneData(mysqli $conn) {
+    $sql = "SELECT drone, `count` FROM HinckleyDrones";
+    return $conn->query($sql);
+}
+
+function returnAverage($totalCount, $noValuesArray) {
     $average = $totalCount / $noValuesArray;
     return $average;
 }
 
-$conn->close();
-?>
+/**
+ * @param $db mysqli
+ */
+function closeDBConnection(mysqli $db) {
+    $db->close();
+}
